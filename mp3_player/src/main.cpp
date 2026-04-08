@@ -7,12 +7,14 @@ const int PIN_PLAY = 2;
 const int PIN_NEXT = 3;
 const int PIN_PREV = 4;
 const int PIN_MENU = 5;
+const int PIN_SCREEN = 6;
 
 // Buttons
 Bounce btn_play = Bounce();
 Bounce btn_next = Bounce();
 Bounce btn_prev = Bounce();
 Bounce btn_menu = Bounce();
+Bounce btn_screen = Bounce();
 
 // The Brain
 enum DeviceState { STATE_PLAYER, STATE_MENU };
@@ -35,6 +37,8 @@ void setup() {
   btn_prev.interval(10);
   btn_menu.attach(PIN_MENU, INPUT_PULLUP);
   btn_menu.interval(10);
+  btn_screen.attach(PIN_SCREEN, INPUT_PULLUP);
+  btn_screen.interval(10);
 }
 
 void loop() {
@@ -42,6 +46,7 @@ void loop() {
   btn_next.update();
   btn_prev.update();
   btn_menu.update();
+  btn_screen.update();
 
   switch (currentState) {
     
@@ -51,6 +56,12 @@ void loop() {
     case STATE_PLAYER:
       if (btn_play.fell()) {
         Serial.println("[PLAYER] Action: Toggled Play/Pause");
+      }
+      if (btn_next.fell()) {
+        Serial.println("[PLAYER] Action: Skipped Song");
+      }
+      if (btn_prev.fell()) {
+        Serial.println("[PLAYER] Action: Rewound Song");
       }
       if (btn_menu.fell()) {
         Serial.println("[TRANSITION] Leaving Player -> Entering Menu");
@@ -72,6 +83,13 @@ void loop() {
         Serial.println("[TRANSITION] Leaving Menu -> Entering Player");
         currentState = STATE_PLAYER;
       }
+      if (btn_prev.fell()) {
+        Serial.println("[MENU] Action: Exiting Folder");
+      }
       break;
+  
   }
+  if (btn_screen.fell()) {
+      Serial.println("[SCREEN] Action: Screen Toggled");
+    }
 }
