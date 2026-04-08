@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "author": "luki",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-mega", "id": "mega", "top": -66.6, "left": -3.6, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 380.6,
+      "left": 374.4,
+      "attrs": { "color": "green", "xray": "1", "key": " " }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn2",
+      "top": 323,
+      "left": 441.6,
+      "attrs": { "color": "green", "xray": "1", "key": "ArrowRight" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn3",
+      "top": 447.8,
+      "left": 307.2,
+      "attrs": { "color": "green", "xray": "1", "key": "ArrowLeft" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn4",
+      "top": 323,
+      "left": 307.2,
+      "attrs": { "color": "green", "xray": "1", "bounce": "1", "key": "m" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn5",
+      "top": 169.4,
+      "left": 19.2,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled1",
+      "top": 175.94,
+      "left": 125.03,
+      "attrs": { "i2cAddress": "0x3c" }
+    },
+    {
+      "type": "wokwi-slide-potentiometer",
+      "id": "pot1",
+      "top": 331.6,
+      "left": 90.4,
+      "rotate": 270,
+      "attrs": { "travelLength": "30" }
+    }
+  ],
+  "connections": [
+    [ "btn1:1.r", "mega:2", "#8f4814", [ "h0.2", "v-336" ] ],
+    [ "btn1:2.l", "mega:GND.1", "black", [ "h-86.4", "v-355" ] ],
+    [ "btn2:2.l", "mega:GND.1", "black", [ "h-9.6", "v-297.4" ] ],
+    [ "btn3:2.l", "mega:GND.1", "black", [ "h-28.8", "v-422.2" ] ],
+    [ "btn4:2.l", "mega:GND.1", "black", [ "h-9.6", "v-297.4" ] ],
+    [ "btn5:2.l", "mega:GND.1", "black", [ "h-48", "v-259" ] ],
+    [ "btn2:1.r", "mega:3", "red", [ "h0.2", "v-278.4" ] ],
+    [ "btn3:1.r", "mega:4", "orange", [ "h9.8", "v-403.2" ] ],
+    [ "btn4:1.r", "mega:5", "gold", [ "h0.2", "v-278.4" ] ],
+    [ "btn5:1.r", "mega:6", "green", [ "h0.2", "v-240" ] ],
+    [ "oled1:VCC", "mega:5V", "red", [ "v0" ] ],
+    [ "oled1:GND", "mega:GND.2", "black", [ "v0" ] ],
+    [ "oled1:SCL", "mega:21", "green", [ "v-19.2", "h182.7", "v-192" ] ],
+    [ "oled1:SDA", "mega:20", "green", [ "h163.27", "v-211.2" ] ],
+    [ "pot1:VCC", "mega:5V", "red", [ "h62.4", "v-385.7" ] ],
+    [ "pot1:GND", "mega:GND.2", "black", [ "v-4.4", "h-86.4", "v-384" ] ],
+    [ "pot1:SIG", "mega:A0", "green", [ "v0", "h58.4", "v-172.8" ] ]
+  ],
+  "dependencies": {}
+}
