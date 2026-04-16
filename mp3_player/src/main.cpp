@@ -31,18 +31,20 @@ bool songPlaying = false;
 int Menu_selected_item = 0;
 int numberMenuItems = 3; // number of intems in the menu, used to limit the slider input for menu navigation
 
+bool isScreenOn = true;
+
 void setup() {
 
   initDisplay(); // Wake up the OLED!
 
   Serial.begin(115200);
-  while (!Serial); // Wait for you to open the Serial Monitor
+  //while (!Serial); // Wait for you to open the Serial Monitor
   Serial.println("DISPLAY OK");
 
-  
   Serial.println("--- SYSTEM BOOT ---");
   Serial.println("Current State: PLAYER");
 
+  // Initialize buttons with their respective pins and debounce intervals
   btn_play.attach(PIN_PLAY, INPUT_PULLUP);
   btn_play.interval(10);
   btn_next.attach(PIN_NEXT, INPUT_PULLUP);
@@ -128,7 +130,14 @@ void loop() {
       break;
   
   }
+  // Screen toogle and debug
   if (btn_screen.fell()) {
-      Serial.println("[SCREEN] Action: Screen Toggled");
+    isScreenOn = !isScreenOn;
+    toggleScreenPower(isScreenOn);
+    if (isScreenOn) {
+      Serial.println("[SCREEN] Action: Screen Turned ON");
+    } else {
+      Serial.println("[SCREEN] Action: Screen Turned OFF");
     }
+  }
 }
