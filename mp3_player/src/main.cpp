@@ -3,6 +3,7 @@
 #include <Bounce2.h>
 #include <U8g2lib.h>
 #include "display_ui.h"
+#include "hardware_io.h"
 
 // Pins
 const int PIN_PLAY = 2;
@@ -11,6 +12,7 @@ const int PIN_PREV = 4;
 const int PIN_MENU = 5;
 const int PIN_SCREEN = 6;
 const int PIN_SLIDER = 14;
+const int PIN_BATTERY = 15;
 
 // Buttons
 Bounce btn_play = Bounce();
@@ -22,6 +24,10 @@ Bounce btn_screen = Bounce();
 // The Brain
 enum DeviceState { STATE_PLAYER, STATE_MENU };
 DeviceState currentState = STATE_PLAYER;
+
+float BatteryLevel = 0;
+float LastBatteryLevel = 0;
+unsigned long lastBatteryCheck = 0;
 
 int currentVolume = 0;
 unsigned long lastVolRead = 0; 
@@ -40,8 +46,10 @@ void setup() {
   Serial.begin(115200);
   //while (!Serial); // Wait for you to open the Serial Monitor
   Serial.println("DISPLAY OK");
-
   Serial.println("--- SYSTEM BOOT ---");
+  Serial.println("--- BATTERY SENSOR TEST ---");
+  
+
   Serial.println("Current State: PLAYER");
 
   // Initialize buttons with their respective pins and debounce intervals
@@ -63,7 +71,19 @@ void loop() {
   btn_prev.update();
   btn_menu.update();
   btn_screen.update();
+  
+  if(millis() - lastBatteryCheck > 1000) { // Check battery level every 1 second
+    BatteryLevel = BatteryLevelFinder(PIN_BATTERY);
+    if(BatteryLevel < LastBatteryLevel - 2 || BatteryLevel > LastBatteryLevel + 2) { // Only print if the battery level changed by at least 2%
+      Serial.print("Battery: ");
+      Serial.print(BatteryLevel);
+      Serial.println("%");
+      LastBatteryLevel = BatteryLevel;
+    }
+    lastBatteryCheck = millis();
+  }
 
+  // TODO: Move this to hardware abstraction layer [and make it more efficient by only reading when the slider is moved (i.e. when the value changes by a certain threshold)?]
   // Read the volume every 100 milliseconds so we don't spam the processor
   if (millis() - lastVolRead > 100) {
     int rawValue = analogRead(PIN_SLIDER);
@@ -117,6 +137,14 @@ void loop() {
         Serial.println("[MENU] Action: Entered Folder");
       }
       if (btn_prev.fell()) {
+
+
+
+
+
+
+
+
         Serial.println("[MENU] Action: Exited folder");
       }
       if (btn_play.fell()) {

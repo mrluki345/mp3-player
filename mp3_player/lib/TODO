@@ -1,0 +1,4 @@
+1. [ ]  Generate test functions for hardware
+2. [ ]  Move hardware things to hardware.cpp
+3. [ ] Design UI
+    a. [ ]  Print battery percantage (how?)
