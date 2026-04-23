@@ -1,4 +1,17 @@
 1. [ ]  Generate test functions for hardware
 2. [ ]  Move hardware things to hardware.cpp
 3. [ ] Design UI
-    a. [ ]  Print battery percantage (how?)
+    a. [ ]  Print battery percantage (how?)6. [ ] Get a micro SD and upload songs:
+        SD card
+        |
+        |---- All music (folder)
+        |       |--- song1.flac
+        |       |--- song2.flac
+        |       |--- song3.flac
+        |      ...
+        |
+        L---- Playlists (folder)
+                |--- playlist1.m3u
+                |--- playlist1.m3u
+                |--- playlist1.m3u
+               ...
