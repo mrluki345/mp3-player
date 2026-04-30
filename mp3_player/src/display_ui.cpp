@@ -31,26 +31,79 @@ void toggleScreenPower(bool turnOn) {
 }
 
 // --- DESIGN 1: THE PLAYER ---
-void drawPlayerScreen(const char* songTitle, int volume, bool isPlaying) {
+void drawPlayerScreen1(const char* songTitle, const char* Artist, int volume, bool isPlaying) {
   u8g2.clearBuffer();
-  
-  // Song Title
-  u8g2.setFont(u8g2_font_ncenB10_tr);
-  u8g2.drawStr(0, 15, songTitle);
-  
-  // Play/Pause Status
-  u8g2.setFont(u8g2_font_ncenB08_tr);
-  if (isPlaying) {
-    u8g2.drawStr(45, 35, "> PLAYING");
-  } else {
-    u8g2.drawStr(45, 35, "|| PAUSED");
-  }
 
-  // Volume Bar
-  u8g2.drawFrame(0, 50, 124, 10);
-  int barWidth = map(volume, 0, 99, 0, 122);
-  u8g2.drawBox(0, 50, barWidth, 10);
+  u8g2.setFontMode(1);
+  u8g2.setBitmapMode(1);
+
+  u8g2.setFont(u8g2_font_t0_11b_tr);
+  u8g2.drawStr(1, 10, songTitle);
+
+  u8g2.setFont(u8g2_font_4x6_tr);
+  u8g2.drawStr(1, 18, "Artist");
   
+  // spools
+  u8g2.drawEllipse(18, 36, 6, 6);
+  u8g2.drawEllipse(109, 36, 6, 6);
+  u8g2.drawEllipse(18, 36, 16, 16);
+  u8g2.drawEllipse(15, 59, 2, 2);
+  u8g2.drawEllipse(112, 59, 2, 2);
+
+  //tape
+  u8g2.drawLine(13, 60, 3, 42);
+  u8g2.drawLine(114, 60, 115, 38);
+  u8g2.drawLine(15, 61, 111, 61);
+
+  //"progress bar"
+  u8g2.drawFrame(21, 55, 86, 4);
+
+  //volume bar
+  u8g2.drawLine(123, 2, 125, 2);
+  u8g2.drawLine(123, 27, 125, 27);
+  u8g2.drawLine(124, 3, 124, 27);
+  u8g2.drawLine(123, map(volume, 0, 100, 3, 26), 125, map(volume, 0, 100, 3, 26));
+
+  u8g2.sendBuffer();
+}
+
+void drawPlayerScreen2(const char* songTitle, const char* Artist, int volume, int progress) {
+  u8g2.clearBuffer();
+    
+  u8g2.setFontMode(1);
+  u8g2.setBitmapMode(1);
+
+  // Song title in big font
+  u8g2.setFont(u8g2_font_profont15_tr);
+  u8g2.drawStr(18, 16, songTitle);
+
+  // Artist name in smaller font
+  u8g2.setFont(u8g2_font_profont10_tr);
+  u8g2.drawStr(18, 24, Artist);
+
+  //volume container
+  u8g2.drawLine(18, 35, 88, 35);
+  u8g2.drawLine(89, 35, 89, 32);
+  //volume bar
+  u8g2.drawBox(18, 32, map(volume, 0, 100, 0, 71), 3);
+  //volume level
+  u8g2.setFont(u8g2_font_5x7_tr);
+  u8g2.drawStr(92, 37, String(volume).c_str());
+
+  //Dithered empty progress bar
+  for (int y = 41; y < 41 + 11; y++) {
+    
+    for (int x = 18; x < 18 + 88; x++) {
+      
+      if ((x + y) % 2 == 0) {
+        u8g2.drawPixel(x, y);
+      } 
+      
+    }
+  }
+  //Filled progress bar
+  u8g2.drawBox(18, 41, map(progress, 0, 100, 0, 88), 11);
+
   u8g2.sendBuffer();
 }
 

@@ -33,6 +33,7 @@ int currentVolume = 0;
 unsigned long lastVolRead = 0; 
 
 bool songPlaying = false;
+int SongTime = 0; // in seconds, used for demo purposes to show how the menu navigation would work (e.g. navigating through folders and songs would change this variable to reflect the current song time)
 
 int Menu_selected_item = 0;
 int numberMenuItems = 3; // number of intems in the menu, used to limit the slider input for menu navigation
@@ -110,18 +111,19 @@ void loop() {
     // IF WE ARE ON THE MUSIC PLAYER PAGE
     // -----------------------------------
     case STATE_PLAYER:
-        drawPlayerScreen("Song Title", currentVolume, songPlaying);
+      drawPlayerScreen2("Space Cowboy", "Jamiroquai", currentVolume, SongTime);
 
       if (btn_play.fell()) {
         Serial.println("[PLAYER] Action: Toggled Play/Pause");
         songPlaying = !songPlaying;
       }
-
       if (btn_next.fell()) {
         Serial.println("[PLAYER] Action: Skipped Song");
+        SongTime = SongTime + 10;
       }
       if (btn_prev.fell()) {
         Serial.println("[PLAYER] Action: Rewound Song");
+        SongTime = SongTime - 10;
       }
       if (btn_menu.fell()) {
         Serial.println("[TRANSITION] Leaving Player -> Entering Menu");
@@ -137,14 +139,6 @@ void loop() {
         Serial.println("[MENU] Action: Entered Folder");
       }
       if (btn_prev.fell()) {
-
-
-
-
-
-
-
-
         Serial.println("[MENU] Action: Exited folder");
       }
       if (btn_play.fell()) {
