@@ -2,8 +2,12 @@
 #include <SPI.h>
 #include <Bounce2.h>
 #include <U8g2lib.h>
+#include <AudioStream.h>
+
 #include "display_ui.h"
 #include "hardware_io.h"
+#include "audio_engine.h"
+#include "core_pins.h"
 
 // Pins
 const int PIN_PLAY = 2;
@@ -39,10 +43,18 @@ int Menu_selected_item = 0;
 int numberMenuItems = 3; // number of intems in the menu, used to limit the slider input for menu navigation
 
 bool isScreenOn = true;
+unsigned long lastDisplayUpdate = 0;
+
+unsigned long lastUpdate = 0;
+int currentFrequency = 100;
+
+unsigned long loopCounter = 0;
+unsigned long lastHeartbeat = 0;
 
 void setup() {
 
   initDisplay(); // Wake up the OLED!
+  initAudioEngine(); // Wake up the Audio Shield!
 
   Serial.begin(115200);
   //while (!Serial); // Wait for you to open the Serial Monitor
@@ -67,6 +79,15 @@ void setup() {
 }
 
 void loop() {
+
+loopCounter++;
+  if (millis() - lastHeartbeat > 1000) { // Print exactly once per second
+    Serial.print("Loops per second: ");
+    Serial.println(loopCounter);
+    loopCounter = 0;
+    lastHeartbeat = millis();
+  }
+  
   btn_play.update();
   btn_next.update();
   btn_prev.update();
@@ -93,7 +114,7 @@ void loop() {
     int mappedVolume = map(rawValue, 0, 1024, 0, 100);
 
     // Only print if the volume actually changed!
-    if (mappedVolume != currentVolume) {
+    if (mappedVolume < currentVolume - 2 || mappedVolume > currentVolume + 2) { // Adding a threshold of 5% to avoid spamming the serial monitor with minor changes
       currentVolume = mappedVolume;
       Serial.print("Volume: ");
       Serial.print(currentVolume);
@@ -105,53 +126,89 @@ void loop() {
   int SliderMenuSelection = map(analogRead(PIN_SLIDER), 0, 1024, 0, numberMenuItems-1);
   Menu_selected_item = SliderMenuSelection;
 
-  switch (currentState) {
+  if (millis() - lastUpdate > 100) {
+    lastUpdate = millis();
     
-    // -----------------------------------
-    // IF WE ARE ON THE MUSIC PLAYER PAGE
-    // -----------------------------------
-    case STATE_PLAYER:
-      drawPlayerScreen2("Space Cowboy", "Jamiroquai", currentVolume, SongTime);
+    currentFrequency = SongTime * 10 + 100; // Just for demo purposes, the frequency will increase as the song "progresses"
+    
+    // If it gets too high, reset back to a low bass note
+    if (currentFrequency > 2000) {
+      currentFrequency = 100;
+    }
+    
+    // Tell the synth to change pitch ONLY right now
+    //playSineWave(currentFrequency, currentVolume / 100.0); // volume is a percentage, so we divide by 100 to get a value between 0 and 1 for the amplitude
 
-      if (btn_play.fell()) {
-        Serial.println("[PLAYER] Action: Toggled Play/Pause");
-        songPlaying = !songPlaying;
-      }
-      if (btn_next.fell()) {
-        Serial.println("[PLAYER] Action: Skipped Song");
-        SongTime = SongTime + 10;
-      }
-      if (btn_prev.fell()) {
-        Serial.println("[PLAYER] Action: Rewound Song");
-        SongTime = SongTime - 10;
-      }
-      if (btn_menu.fell()) {
-        Serial.println("[TRANSITION] Leaving Player -> Entering Menu");
-        currentState = STATE_MENU;
-      }
-      break;
-
-    // -----------------------------------
-    // IF WE ARE ON THE MENU PAGE
-    // -----------------------------------
-    case STATE_MENU:
-      if (btn_next.fell()) {
-        Serial.println("[MENU] Action: Entered Folder");
-      }
-      if (btn_prev.fell()) {
-        Serial.println("[MENU] Action: Exited folder");
-      }
-      if (btn_play.fell()) {
-        Serial.println("[MENU] Action: Selected");
-      }
-      if (btn_menu.fell()) {
-        Serial.println("[TRANSITION] Leaving Menu -> Entering Player");
-        currentState = STATE_PLAYER;
-      }
-      drawMenuScreen(3, Menu_selected_item);
-      break;
-  
+// Print the CURRENT diagnostics (No reset required)
+    //Serial.print("CPU Load: ");
+    //Serial.print(AudioProcessorUsage());
+    //Serial.print("% | Memory Buckets Used: ");
+    //Serial.println(AudioMemoryUsage());
   }
+
+// --- 5. UI LOGIC (Now respects the power button!) ---
+  if (isScreenOn == true) { // ONLY calculate and send data if the screen is awake!
+    
+    if (millis() - lastDisplayUpdate > 50) { 
+      lastDisplayUpdate = millis();
+
+      switch (currentState) {
+        case STATE_PLAYER:
+          drawPlayerScreen2("Brainstorm", "Artic Monkeys", currentVolume, SongTime);
+          break;
+        case STATE_MENU:
+          drawMenuScreen(3, Menu_selected_item);
+          break;
+      }
+    }
+    
+  }
+
+  // -----------------------------------
+  // BUTTON LOGIC (Runs as fast as possible, outside the timer!)
+  // -----------------------------------
+  if (currentState == STATE_PLAYER) {
+    if (btn_play.fell()) {
+        songPlaying = !songPlaying;
+        
+        if (songPlaying) {
+          Serial.println("[PLAYER] Action: PLAY");
+          playMusicFile("test.wav"); // The exact name on your SD card
+        } else {
+          Serial.println("[PLAYER] Action: PAUSE");
+          // If you don't have a pause function, stop it for now
+          stopMusic(); 
+        }
+      }
+    if (btn_next.fell()) {
+      Serial.println("[PLAYER] Action: Skipped Song (song time = " + String(SongTime) + "s)");
+      SongTime = SongTime + 10;
+    }
+    if (btn_prev.fell()) {
+      Serial.println("[PLAYER] Action: Rewound Song (song time = " + String(SongTime) + "s)");
+      SongTime = SongTime - 10;
+    }
+    if (btn_menu.fell()) {
+      Serial.println("[TRANSITION] Leaving Player -> Entering Menu");
+      currentState = STATE_MENU;
+    }
+  } 
+  else if (currentState == STATE_MENU) {
+    if (btn_next.fell()) {
+      Serial.println("[MENU] Action: Entered Folder");
+    }
+    if (btn_prev.fell()) {
+      Serial.println("[MENU] Action: Exited folder");
+    }
+    if (btn_play.fell()) {
+      Serial.println("[MENU] Action: Selected");
+    }
+    if (btn_menu.fell()) {
+      Serial.println("[TRANSITION] Leaving Menu -> Entering Player");
+      currentState = STATE_PLAYER;
+    }
+  }
+
   // Screen toogle and debug
   if (btn_screen.fell()) {
     isScreenOn = !isScreenOn;
@@ -162,4 +219,5 @@ void loop() {
       Serial.println("[SCREEN] Action: Screen Turned OFF");
     }
   }
+
 }
